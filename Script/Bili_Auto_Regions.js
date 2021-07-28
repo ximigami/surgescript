@@ -3,7 +3,7 @@
 哔哩哔哩, 港澳台番剧自动切换地区
 
 
-Update: 2021.05.02
+Update: 2021.06.17
 Author: @NobyDa
 Use: Surge, QuanX, Loon
 
@@ -29,11 +29,11 @@ let $ = nobyda();
 let run = EnvInfo();
 
 async function SwitchRegion(play) {
-	const Group = '🍻Bilibili'; //Your blibli policy group name.
-        const CN = '🚀Direct'; //Your China sub-policy name.
-        const TW = '🇹🇼TW'; //Your Taiwan sub-policy name.
-        const HK = '🇭🇰HK'; //Your HongKong sub-policy name.
-	const current = await $.getPolicy(Group) || 'Policy error ⚠️';
+	const Group = '🍻Bilibili';
+                const CN = '🚀Direct';
+                const TW = '🇹🇼TW';
+                const HK = '🇭🇰HK';
+	const current = await $.getPolicy(Group);
 	const area = (() => {
 		if (/\u50c5[\u4e00-\u9fa5]+\u6e2f|%20%E6%B8%AF&/.test(play)) {
 			if (current != HK) return HK;
@@ -45,12 +45,31 @@ async function SwitchRegion(play) {
 	if (area) {
 		const change = await $.setPolicy(Group, area);
 		const notify = 'false';
-		const msg = `${current}  =>  ${change?area:'sub-policy error ⚠️'}  =>  ${change?`🟢`:`🔴`}`;
-		if (!notify) $.notify(/^http/.test(play) || !play ? `` : play, ``, msg);
-		else console.log(`${/^http/.test(play)||!play?``:play}\n${msg}`);
-		if (change) return true;
+		const msg = SwitchStatus(change, current, area);
+		if (!notify) {
+			$.notify(/^http/.test(play) || !play ? `` : play, ``, msg);
+		} else {
+			console.log(`${/^http/.test(play)||!play?``:play}\n${msg}`);
+		}
+		if (change) {
+			return true;
+		}
 	}
 	return false;
+}
+
+function SwitchStatus(status, original, newPolicy) {
+	if (status) {
+		return `${original}  =>  ${newPolicy}  =>  🟢`;
+	} else if (original === 2) {
+		return `切换失败, 策略组名未填写或填写有误 ⚠️`
+	} else if (original === 3) {
+		return `切换失败, 不支持您的VPN应用版本 ⚠️`
+	} else if (status === 0) {
+		return `切换失败, 子策略名未填写或填写有误 ⚠️`
+	} else {
+		return `策略切换失败, 未知错误 ⚠️`
+	}
 }
 
 function EnvInfo() {
@@ -71,7 +90,7 @@ function EnvInfo() {
 
 async function QueryRating(body, play) {
 	try {
-		const ratingEnabled = $.read('BiliDoubanRating') === 'false';
+		const ratingEnabled = 'false';
 		if (!ratingEnabled && play.title && body.data && body.data.badge_info) {
 			const [t1, t2] = await Promise.all([
 				GetRawInfo(play.title),
@@ -187,29 +206,28 @@ function nobyda() {
 		return response;
 	}
 	const getPolicy = (groupName) => {
-		const m = `Version error ⚠️`
 		if (isSurge) {
-			if (typeof($httpAPI) === 'undefined') return m;
+			if (typeof($httpAPI) === 'undefined') return 3;
 			return new Promise((resolve) => {
 				$httpAPI("GET", "v1/policy_groups/select", {
 					group_name: encodeURIComponent(groupName)
-				}, (b) => resolve(b.policy))
+				}, (b) => resolve(b.policy || 2))
 			})
 		}
 		if (isLoon) {
-			if (typeof($config.getPolicy) === 'undefined') return m;
+			if (typeof($config.getPolicy) === 'undefined') return 3;
 			const getName = $config.getPolicy(groupName);
-			return getName;
+			return getName || 2;
 		}
 		if (isQuanX) {
-			if (typeof($configuration) === 'undefined') return m;
+			if (typeof($configuration) === 'undefined') return 3;
 			return new Promise((resolve) => {
 				$configuration.sendMessage({
 					action: "get_policy_state"
 				}).then(b => {
 					if (b.ret && b.ret[groupName]) {
 						resolve(b.ret[groupName][1]);
-					} else resolve();
+					} else resolve(2);
 				}, () => resolve());
 			})
 		}
@@ -220,12 +238,12 @@ function nobyda() {
 				$httpAPI("POST", "v1/policy_groups/select", {
 					group_name: group,
 					policy: policy
-				}, (b) => resolve(!b.error))
+				}, (b) => resolve(!b.error || 0))
 			})
 		}
 		if (isLoon && typeof($config.getPolicy) !== 'undefined') {
 			const set = $config.setSelectPolicy(group, policy);
-			return set;
+			return set || 0;
 		}
 		if (isQuanX && typeof($configuration) !== 'undefined') {
 			return new Promise((resolve) => {
@@ -234,7 +252,7 @@ function nobyda() {
 					content: {
 						[group]: policy
 					}
-				}).then((b) => resolve(!b.error), () => resolve());
+				}).then((b) => resolve(!b.error || 0), () => resolve());
 			})
 		}
 	}
