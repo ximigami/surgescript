@@ -14,7 +14,6 @@ PixivPremium = type=http-response,pattern=^https:\/\/oauth\.secure\.pixiv\.net\/
 Bili区域 = type=http-response,pattern=^https:\/\/ap(p|i)\.bilibili\.com\/(pgc\/view\/(v\d\/)?app|x(\/v\d)?\/view\/video)\/(season|online)\?access_key,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/wubulaba/surgescript/master/Script/Bili_Auto_Regions.js
 Bili搜索 = type=http-request,pattern=^https:\/\/app\.bilibili\.com\/x\/v\d\/search(\/type)?\?.+?%20(%E6%B8%AF|%E5%8F%B0|%E4%B8%AD)&,script-path=https://raw.githubusercontent.com/wubulaba/surgescript/master/Script/Bili_Auto_Regions.js
 Blued闪照 = type=http-request,pattern=^https:\/\/.*burn-chatfiles\.bldimg\.com\/,script-path=https://raw.githubusercontent.com/wubulaba/surgescript/master/Script/Blued.js,script-update-interval=0
-训记 = type=http-response,pattern=^https?:\/\/xunji\.implements\.io\/whole_user_info,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/wubulaba/surgescript/master/Script/Xunji.js,script-update-interval=0
 
 [MITM]
-hostname = %APPEND% mp.weixin.qq.com, *burn-chatfiles.bldimg.com, api.picsart.com, api.meiease.cn, mobile-api.adguard.com, app.bilibili.com, api.bilibili.com, xunji.implements.io, oauth.secure.pixiv.net
+hostname = %APPEND% mp.weixin.qq.com, *burn-chatfiles.bldimg.com, api.picsart.com, api.meiease.cn, mobile-api.adguard.com, app.bilibili.com, api.bilibili.com, oauth.secure.pixiv.net
